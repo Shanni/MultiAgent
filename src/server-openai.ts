@@ -5,7 +5,8 @@ import dotenv from 'dotenv';
 import {funnyCryptoAdvisor, messages } from './services/openaiProvider';
 import { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 import { fetchCryptoNews } from './services/newsProvider';
-
+import { runMarketAnalysis } from './services/agentProvider';
+import { CoinbaseTradeAgent } from './services/coinbaseAgentkitProvider';
 // Load environment variables from a .env file (if you use one)
 dotenv.config();
 
@@ -111,6 +112,106 @@ newsNamespace.on('connection', (socket) => {
     console.log('Client disconnected from news feed');
     clearInterval(newsInterval);
   });
+});
+
+// // Create a namespace for market analysis
+// const analysisNamespace = io.of('/news-based-analysis');
+
+// analysisNamespace.on('connection', (socket) => {
+//   console.log('Client connected to market analysis');
+
+//   let analysisInterval: NodeJS.Timeout;
+
+//   // Function to run and emit analysis
+//   async function performAnalysis() {
+//     try {
+//       const analysis = await runMarketAnalysis();
+//       socket.emit('analysis-update', {
+//         timestamp: new Date().toISOString(),
+//         analysis
+//       });
+//     } catch (error) {
+//       socket.emit('error', {
+//         message: error instanceof Error ? error.message : 'Analysis failed',
+//         timestamp: new Date().toISOString()
+//       });
+//     }
+//   }
+
+//   // Initial analysis
+//   performAnalysis();
+
+//   // Set up periodic analysis updates
+//   analysisInterval = setInterval(performAnalysis, 5 * 60 * 1000); // Run every 5 minutes
+
+//   socket.on('request-analysis', () => {
+//     // Allow clients to manually request a new analysis
+//     performAnalysis();
+//   });
+
+//   socket.on('disconnect', () => {
+//     console.log('Client disconnected from market analysis');
+//     clearInterval(analysisInterval);
+//   });
+// });
+
+// Create a namespace for Coinbase base actions
+const baseActionNamespace = io.of('/baseAction');
+const coinbaseAgentService = new CoinbaseTradeAgent();
+baseActionNamespace.on('connection', async (socket) => {
+    console.log('Client connected to Coinbase base actions');
+
+    try {
+        // Initialize the agent when a client connects
+        await coinbaseAgentService.initialize();
+        socket.emit('status', 'Agent initialized and ready');
+
+        // Handle action requests
+        socket.on('execute', async (action: string) => {
+            try {
+                console.log('Executing action:', action);
+                const results = await coinbaseAgentService.runChatMode();
+                
+                socket.emit('action-results', results);
+            } catch (error) {
+                console.error('Error executing action:', error);
+                socket.emit('error', {
+                    message: error instanceof Error ? error.message : 'Failed to execute action',
+                    timestamp: new Date().toISOString()
+                });
+            }
+        });
+
+        // Handle manual cleanup request
+        socket.on('cleanup', async () => {
+            try {
+                await coinbaseAgentService.cleanup();
+                socket.emit('status', 'Agent cleaned up successfully');
+            } catch (error) {
+                console.error('Error during cleanup:', error);
+                socket.emit('error', {
+                    message: error instanceof Error ? error.message : 'Failed to cleanup',
+                    timestamp: new Date().toISOString()
+                });
+            }
+        });
+
+        socket.on('disconnect', async () => {
+            console.log('Client disconnected from base actions');
+            try {
+                await coinbaseAgentService.cleanup();
+            } catch (error) {
+                console.error('Error during disconnect cleanup:', error);
+            }
+        });
+
+    } catch (error) {
+        console.error('Error initializing agent:', error);
+        socket.emit('error', {
+            message: 'Failed to initialize agent',
+            timestamp: new Date().toISOString()
+        });
+    }
 });
 
 // --- Start the Server ---

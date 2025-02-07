@@ -31,11 +31,17 @@
     "typescript": "^5.7.3"
   },
   "dependencies": {
+    "@coinbase/agentkit": "^0.1.1",
+    "@coinbase/agentkit-langchain": "^0.1.0",
     "@covalenthq/ai-agent-sdk": "^0.2.3",
+    "@langchain/core": "^0.3.39",
+    "@langchain/langgraph": "^0.2.45",
+    "@langchain/openai": "^0.4.2",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "openai": "^4.83.0",
     "socket.io": "^4.8.1",
+    "viem": "^2.22.23",
     "zod": "^3.24.1"
   }
 }

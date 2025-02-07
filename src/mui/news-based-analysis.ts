@@ -41,17 +41,17 @@ const agentFinancialAnalyst = new Agent({
     ],
 });
 
-const zee = new ZeeWorkflow({
-    description:
-        "Analyze the latest crypto news to provide a comprehensive analysis of the market trends.",
-    output: "A comprehensive analysis of the market trends.",
-    agents: {
-        agentGossiper,
-        agentFinancialAnalyst,
-    },
-});
+// const zee = new ZeeWorkflow({
+//     description:
+//         "Analyze the latest crypto news to provide a comprehensive analysis of the market trends.",
+//     output: "A comprehensive analysis of the market trends.",
+//     agents: {
+//         agentGossiper,
+//         agentFinancialAnalyst,
+//     },
+// });
 
-(async function main() {
-const result = await ZeeWorkflow.run(zee);
-console.log(result);
-})();
+// (async function main() {
+// const result = await ZeeWorkflow.run(zee);
+// console.log(result);
+// })();
