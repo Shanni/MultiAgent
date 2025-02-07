@@ -1,0 +1,41 @@
+{
+  "name": "agentic-mui",
+  "version": "0.2.5",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "ts-node src/index.ts",
+    "start": "ts-node src/server.ts",
+    "openai": "ts-node src/server-openai.ts"
+  },
+  "keywords": [
+    "blockchain",
+    "cryptocurrency",
+    "web3",
+    "blockchain-data",
+    "ai-agent",
+    "ai-agents-framework",
+    "zero-employee-enterprise",
+    "autonomous-agents",
+    "autonomous-agent-framework",
+    "autonomous-agent-sdk",
+    "ai-agent-sdk"
+  ],
+  "license": "MIT",
+  "description": " for creating a new ZEE application.",
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.13.1",
+    "@types/socket.io": "^3.0.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "@covalenthq/ai-agent-sdk": "^0.2.3",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "openai": "^4.83.0",
+    "socket.io": "^4.8.1",
+    "zod": "^3.24.1"
+  }
+}
