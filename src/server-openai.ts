@@ -7,6 +7,7 @@ import { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 import { fetchCryptoNews } from './services/newsProvider';
 import { runMarketAnalysis } from './services/agentProvider';
 import { CoinbaseTradeAgent } from './services/coinbaseAgentkitProvider';
+import { HumanMessage } from '@langchain/core/messages';
 // Load environment variables from a .env file (if you use one)
 dotenv.config();
 
@@ -92,21 +93,21 @@ chatNamespace.on('connection', (socket) => {
         balance: totalValue,
         assets
       });
-    
-    // const walletSummary = {
-    //   role: 'assistant',
-    //   content: `I see you're using a wallet on ${chainName} with a total value of ${totalValue}. ` +
-    //     `Your portfolio contains ${assets.length} different assets. ` +
-    //     `Let me know if you'd like specific advice about your holdings! 💼✨`
-    // };
 
-    // messages.push(walletSummary);
-    // socket.emit('output', walletSummary.content);
+      // const walletSummary = {
+      //   role: 'assistant',
+      //   content: `I see you're using a wallet on ${chainName} with a total value of ${totalValue}. ` +
+      //     `Your portfolio contains ${assets.length} different assets. ` +
+      //     `Let me know if you'd like specific advice about your holdings! 💼✨`
+      // };
 
-    // Add the user message to the messages array
-    messages.push({
-      role: 'user',
-      content: `Can you analyze my wallet? Here are the details:
+      // messages.push(walletSummary);
+      // socket.emit('output', walletSummary.content);
+
+      // Add the user message to the messages array
+      messages.push({
+        role: 'user',
+        content: `Can you analyze my wallet? Here are the details:
       Wallet Address: ${walletAddress}
       Chain: ${chainName} 
       Total Value: ${totalValue}
@@ -114,52 +115,52 @@ chatNamespace.on('connection', (socket) => {
         - ${asset.name} (${asset.symbol})
           Balance: ${asset.balance}
           Current Value: $${asset.value}
-          24h Change: ${((asset.price - asset.price_24)/asset.price_24 * 100).toFixed(2)}%
+          24h Change: ${((asset.price - asset.price_24) / asset.price_24 * 100).toFixed(2)}%
       `).join('')}
       this is background knowledge, please keep it in mind.`
-    });
-    const completion = await funnyCryptoAdvisor.chat.completions.create({
-      model: 'gpt-4o',
-      messages: messages as ChatCompletionMessageParam[],
-      max_tokens: 200,
-      temperature: 0.7,
-    });
+      });
+      const completion = await funnyCryptoAdvisor.chat.completions.create({
+        model: 'gpt-4o',
+        messages: messages as ChatCompletionMessageParam[],
+        max_tokens: 200,
+        temperature: 0.7,
+      });
 
-    messages.push({ role: 'assistant', content: String(completion.choices[0].message?.content) });
-    socket.emit('output', `Initial analysis 🔍: ${String(completion.choices[0].message?.content)}`);
-  } else {
-    // messages.push({ role: 'user', content: contextData.message });
-    console.log('messages========================\n', messages);
-  try {
-    // Call OpenAI's Chat Completion API
-    const completion = await funnyCryptoAdvisor.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: messages as ChatCompletionMessageParam[],
-      max_tokens: 200,
-      temperature: 0.7,
-    });
+      messages.push({ role: 'assistant', content: String(completion.choices[0].message?.content) });
+      socket.emit('output', `Initial analysis 🔍: ${String(completion.choices[0].message?.content)}`);
+    } else {
+      // messages.push({ role: 'user', content: contextData.message });
+      console.log('=========================messages========================\n', messages);
+      try {
+        // Call OpenAI's Chat Completion API
+        const completion = await funnyCryptoAdvisor.chat.completions.create({
+          model: 'gpt-4o-mini',
+          messages: messages as ChatCompletionMessageParam[],
+          max_tokens: 200,
+          temperature: 0.7,
+        });
 
-    // Extract the reply from OpenAI's response
-    const aiReply = completion.choices[0].message?.content;
-    messages.push({ role: 'user', content: contextData.message });
-    messages.push({ role: 'assistant', content: String(aiReply) });
+        // Extract the reply from OpenAI's response
+        const aiReply = completion.choices[0].message?.content;
+        messages.push({ role: 'user', content: contextData.message });
+        messages.push({ role: 'assistant', content: String(aiReply) });
 
-    console.log('AI reply:', aiReply);
+        console.log('AI reply:', aiReply);
 
-    // Send the reply back to the client
-    socket.emit('output', aiReply);
-  } catch (error) {
-    console.error('Error calling OpenAI API:', error);
-    socket.emit('output', 'Sorry, there was an error processing your request.');
-  }
-  }
-});
+        // Send the reply back to the client
+        socket.emit('output', aiReply);
+      } catch (error) {
+        console.error('Error calling OpenAI API:', error);
+        socket.emit('output', 'Sorry, there was an error processing your request.');
+      }
+    }
+  });
 
-// Handle client disconnect
-socket.on('disconnect', () => {
-  console.log('Client disconnected');
-  contextMap.delete(socket.id);
-});
+  // Handle client disconnect
+  socket.on('disconnect', () => {
+    console.log('Client disconnected');
+    contextMap.delete(socket.id);
+  });
 });
 
 // Add this after your app initialization
@@ -253,20 +254,29 @@ newsNamespace.on('connection', (socket) => {
 const baseActionNamespace = io.of('/baseAction');
 const coinbaseAgentService = new CoinbaseTradeAgent();
 baseActionNamespace.on('connection', async (socket) => {
-  console.log('Client connected to Coinbase base actions');
-
   try {
     // Initialize the agent when a client connects
     await coinbaseAgentService.initialize();
-    socket.emit('status', 'Agent initialized and ready');
+    socket.emit('status', 'Hey there! 😊 I\'m your friendly Coinbase Agent, all set and ready to help! 🚀💰 What can I do for you today?');
 
+    const coinbaseAgent = coinbaseAgentService.getAgent();
     // Handle action requests
-    socket.on('execute', async (action: string) => {
+    socket.on('input', async (userMessage: string) => {
       try {
-        console.log('Executing action:', action);
-        const results = await coinbaseAgentService.runChatMode();
+        console.log('Coinbase Agent input:', userMessage);
+        const results = await coinbaseAgentService.getAgent().stream(
+          { messages: [new HumanMessage(userMessage)] },
+          coinbaseAgentService.getAgentConfig()
+        );
+        
+        for await (const chunk of results) {
+          if ("agent" in chunk) {
+            socket.emit('output', chunk.agent.messages[0].content);
+          } else if ("tools" in chunk) {
+            socket.emit('output', chunk.tools.messages[0].content);
+          }
+        }
 
-        socket.emit('action-results', results);
       } catch (error) {
         console.error('Error executing action:', error);
         socket.emit('error', {
