@@ -84,7 +84,7 @@ chatNamespace.on('connection', (socket) => {
 
     const contextData = JSON.parse(userMessage);
     const { walletAddress, chainName, totalValue, assets } = contextData?.context || {};
-    if (!context && contextData?.context) {
+    if ((!context && contextData?.context) || (context?.selectedChain != chainName)) {
       // Update context in map
       contextMap.set(socket.id, {
         walletAddress,
@@ -93,15 +93,15 @@ chatNamespace.on('connection', (socket) => {
         assets
       });
     
-    const walletSummary = {
-      role: 'assistant',
-      content: `I see you're using a wallet on ${chainName} with a total value of ${totalValue}. ` +
-        `Your portfolio contains ${assets.length} different assets. ` +
-        `Let me know if you'd like specific advice about your holdings! 💼✨`
-    };
+    // const walletSummary = {
+    //   role: 'assistant',
+    //   content: `I see you're using a wallet on ${chainName} with a total value of ${totalValue}. ` +
+    //     `Your portfolio contains ${assets.length} different assets. ` +
+    //     `Let me know if you'd like specific advice about your holdings! 💼✨`
+    // };
 
-    messages.push(walletSummary);
-    socket.emit('output', walletSummary.content);
+    // messages.push(walletSummary);
+    // socket.emit('output', walletSummary.content);
 
     // Add the user message to the messages array
     messages.push({
@@ -127,7 +127,7 @@ chatNamespace.on('connection', (socket) => {
 
     messages.push({ role: 'assistant', content: String(completion.choices[0].message?.content) });
     socket.emit('output', `Initial analysis 🔍: ${String(completion.choices[0].message?.content)}`);
-  }
+  } else {
     // messages.push({ role: 'user', content: contextData.message });
     console.log('messages========================\n', messages);
   try {
@@ -151,6 +151,7 @@ chatNamespace.on('connection', (socket) => {
   } catch (error) {
     console.error('Error calling OpenAI API:', error);
     socket.emit('output', 'Sorry, there was an error processing your request.');
+  }
   }
 });
 
