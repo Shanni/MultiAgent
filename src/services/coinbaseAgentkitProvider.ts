@@ -93,6 +93,8 @@ import {
                   cdpWalletData: walletDataStr || undefined,
                   networkId: process.env.NETWORK_ID || "base-sepolia",
               };
+
+              console.log("Config:", config);
   
               this.walletProvider = await CdpWalletProvider.configureWithWallet(config);
   

@@ -6,5 +6,5 @@ services:
       - "4000:4000"
     environment:
       - NODE_ENV=production
-      - FRONTEND_URL=your_frontend_url
+      - FRONTEND_URL=https://highland-eight.vercel.app/
     restart: unless-stopped 
