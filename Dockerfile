@@ -8,6 +8,8 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-EXPOSE 4000
+# Expose both HTTP and WebSocket ports
+EXPOSE 4000/tcp
+EXPOSE 4000/udp
 
 CMD ["npm", "start"] 

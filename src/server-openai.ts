@@ -16,8 +16,22 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: process.env.FRONTEND_URL || "*",
-    methods: ["GET", "POST"]
-  }
+    methods: ["GET", "POST"],
+    credentials: true
+  },
+  transports: ['websocket', 'polling'],
+  allowEIO3: true,
+  pingTimeout: 60000,
+  pingInterval: 25000
+});
+
+// Add error handling for socket connections
+io.on('connect_error', (error) => {
+  console.error('Socket connection error:', error);
+});
+
+io.on('connect_timeout', (timeout) => {
+  console.error('Socket connection timeout:', timeout);
 });
 
 // --- OpenAI Setup ---
@@ -169,6 +183,17 @@ app.use(express.json());
 app.get('/health', (_req, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+// Add WebSocket specific health check
+app.get('/socket-health', (_req, res) => {
+  const connectedClients = io.engine.clientsCount;
+  res.status(200).json({ 
+    status: 'ok', 
+    connections: connectedClients,
+    timestamp: new Date().toISOString() 
+  });
+});
+
 // Add the news endpoint
 app.get('/api/news-realtime', async (_req, res) => {
   try {
@@ -319,6 +344,26 @@ baseActionNamespace.on('connection', async (socket) => {
       timestamp: new Date().toISOString()
     });
   }
+});
+
+// Global error handling for WebSocket connections
+io.engine.on("connection_error", (err) => {
+  console.log('Connection error:', err);
+});
+
+// Add monitoring for namespace connections
+['chat', 'news', 'news-based-analysis', 'baseAction'].forEach(namespace => {
+  io.of(`/${namespace}`).on('connection', (socket) => {
+    console.log(`Client connected to ${namespace}. ID: ${socket.id}`);
+    
+    socket.on('error', (error) => {
+      console.error(`Error in ${namespace} namespace:`, error);
+    });
+
+    socket.on('disconnect', (reason) => {
+      console.log(`Client disconnected from ${namespace}. Reason: ${reason}`);
+    });
+  });
 });
 
 // --- Start the Server ---

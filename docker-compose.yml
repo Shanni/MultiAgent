@@ -1,0 +1,10 @@
+version: '3'
+services:
+  socket-server:
+    build: .
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=production
+      - FRONTEND_URL=your_frontend_url
+    restart: unless-stopped 
