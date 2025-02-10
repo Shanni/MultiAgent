@@ -346,25 +346,25 @@ baseActionNamespace.on('connection', async (socket) => {
   }
 });
 
-// Global error handling for WebSocket connections
-io.engine.on("connection_error", (err) => {
-  console.log('Connection error:', err);
-});
+// // Global error handling for WebSocket connections
+// io.engine.on("connection_error", (err) => {
+//   console.log('Connection error:', err);
+// });
 
-// Add monitoring for namespace connections
-['chat', 'news', 'news-based-analysis', 'baseAction'].forEach(namespace => {
-  io.of(`/${namespace}`).on('connection', (socket) => {
-    console.log(`Client connected to ${namespace}. ID: ${socket.id}`);
+// // Add monitoring for namespace connections
+// ['chat', 'news', 'news-based-analysis', 'baseAction'].forEach(namespace => {
+//   io.of(`/${namespace}`).on('connection', (socket) => {
+//     console.log(`Client connected to ${namespace}. ID: ${socket.id}`);
     
-    socket.on('error', (error) => {
-      console.error(`Error in ${namespace} namespace:`, error);
-    });
+//     socket.on('error', (error) => {
+//       console.error(`Error in ${namespace} namespace:`, error);
+//     });
 
-    socket.on('disconnect', (reason) => {
-      console.log(`Client disconnected from ${namespace}. Reason: ${reason}`);
-    });
-  });
-});
+//     socket.on('disconnect', (reason) => {
+//       console.log(`Client disconnected from ${namespace}. Reason: ${reason}`);
+//     });
+//   });
+// });
 
 // --- Start the Server ---
 const PORT = process.env.PORT || 4000;

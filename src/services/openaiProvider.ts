@@ -8,18 +8,18 @@ if (!process.env.OPENAI_API_KEY) {
 }
 
 // Initialize the OpenAI client with funny crypto advisor personality
-// export const funnyCryptoAdvisor = new OpenAI({
-//   apiKey: process.env.OPENAI_API_KEY,
-//   baseURL: "https://api.openai.com/v1",
-// });
+export const funnyCryptoAdvisor = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  baseURL: "https://api.openai.com/v1",
+});
 
 // Initialize the OpenAI client with funny crypto advisor personality
-export const funnyCryptoAdvisor = new OpenAI({
-  apiKey: process.env.GAIA_API_KEY,
-  baseURL: "https://consensus.gaia.domains/v1",
-  timeout: 30000,
-  maxRetries: 2,
-});
+// export const funnyCryptoAdvisor = new OpenAI({
+//   apiKey: process.env.GAIA_API_KEY,
+//   baseURL: "https://consensus.gaia.domains/v1",
+//   timeout: 30000,
+//   maxRetries: 2,
+// });
 
 // Store conversation history
 export const messages = [
