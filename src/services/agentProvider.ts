@@ -35,10 +35,10 @@ export async function runMarketAnalysis() {
     try {
         // Fetch latest news first
         const news = await fetchCryptoNews();
-        const newsContext = news
-            .slice(0, 12)
-            .map(n => n.title)
-            .join(". ");
+        const newsContext = news[0]
+            // .slice(0)
+            // .map(n => n.title)
+            // .join(". ");
 
         // Create workflow with context
         const zee = new ZeeWorkflow({

@@ -15,7 +15,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "*", // TODO: Change to the domain of the frontend
+    origin: process.env.FRONTEND_URL || "*",
     methods: ["GET", "POST"]
   }
 });
@@ -166,6 +166,9 @@ chatNamespace.on('connection', (socket) => {
 // Add this after your app initialization
 app.use(express.json());
 
+app.get('/health', (_req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 // Add the news endpoint
 app.get('/api/news-realtime', async (_req, res) => {
   try {
@@ -209,46 +212,46 @@ newsNamespace.on('connection', (socket) => {
   });
 });
 
-// // Create a namespace for market analysis
-// const analysisNamespace = io.of('/news-based-analysis');
+// Create a namespace for market analysis
+const analysisNamespace = io.of('/news-based-analysis');
 
-// analysisNamespace.on('connection', (socket) => {
-//   console.log('Client connected to market analysis');
+analysisNamespace.on('connection', (socket) => {
+  console.log('Client connected to market analysis');
 
-//   let analysisInterval: NodeJS.Timeout;
+  let analysisInterval: NodeJS.Timeout;
 
-//   // Function to run and emit analysis
-//   async function performAnalysis() {
-//     try {
-//       const analysis = await runMarketAnalysis();
-//       socket.emit('analysis-update', {
-//         timestamp: new Date().toISOString(),
-//         analysis
-//       });
-//     } catch (error) {
-//       socket.emit('error', {
-//         message: error instanceof Error ? error.message : 'Analysis failed',
-//         timestamp: new Date().toISOString()
-//       });
-//     }
-//   }
+  // Function to run and emit analysis
+  async function performAnalysis() {
+    try {
+      const analysis = await runMarketAnalysis();
+      socket.emit('news-analysis', {
+        timestamp: new Date().toISOString(),
+        analysis
+      });
+    } catch (error) {
+      socket.emit('error', {
+        message: error instanceof Error ? error.message : 'Analysis failed',
+        timestamp: new Date().toISOString()
+      });
+    }
+  }
 
-//   // Initial analysis
-//   performAnalysis();
+  // Initial analysis
+  // performAnalysis();
 
-//   // Set up periodic analysis updates
-//   analysisInterval = setInterval(performAnalysis, 5 * 60 * 1000); // Run every 5 minutes
+  // Set up periodic analysis updates
+  // analysisInterval = setInterval(performAnalysis, 5 * 60 * 1000); // Run every 5 minutes
 
-//   socket.on('request-analysis', () => {
-//     // Allow clients to manually request a new analysis
-//     performAnalysis();
-//   });
+  socket.on('request-analysis', () => {
+    // Allow clients to manually request a new analysis
+    performAnalysis();
+  });
 
-//   socket.on('disconnect', () => {
-//     console.log('Client disconnected from market analysis');
-//     clearInterval(analysisInterval);
-//   });
-// });
+  socket.on('disconnect', () => {
+    console.log('Client disconnected from market analysis');
+    // clearInterval(analysisInterval);
+  });
+});
 
 // Create a namespace for Coinbase base actions
 const baseActionNamespace = io.of('/baseAction');
@@ -268,7 +271,7 @@ baseActionNamespace.on('connection', async (socket) => {
           { messages: [new HumanMessage(userMessage)] },
           coinbaseAgentService.getAgentConfig()
         );
-        
+
         for await (const chunk of results) {
           if ("agent" in chunk) {
             socket.emit('output', chunk.agent.messages[0].content);
