@@ -8,6 +8,7 @@ import { fetchCryptoNews } from './services/newsProvider';
 import { runMarketAnalysis } from './services/agentProvider';
 import { CoinbaseTradeAgent } from './services/coinbaseAgentkitProvider';
 import { HumanMessage } from '@langchain/core/messages';
+import { OnchainTradeAgent } from './services/genericAgentkitProvider';
 // Load environment variables from a .env file (if you use one)
 dotenv.config();
 
@@ -280,69 +281,59 @@ analysisNamespace.on('connection', (socket) => {
 
 // Create a namespace for Coinbase base actions
 const baseActionNamespace = io.of('/baseAction');
-const coinbaseAgentService = new CoinbaseTradeAgent();
+// const coinbaseAgentService = new CoinbaseTradeAgent();
+const onchainTradeAgent = new OnchainTradeAgent();
 baseActionNamespace.on('connection', async (socket) => {
   try {
     // Initialize the agent when a client connects
-    await coinbaseAgentService.initialize();
+    await onchainTradeAgent.initialize();
     socket.emit('status', 'Hey there! 😊 I\'m your friendly Coinbase Agent, all set and ready to help! 🚀💰 What can I do for you today?');
 
-    const coinbaseAgent = coinbaseAgentService.getAgent();
+    const onchainAgent = onchainTradeAgent.getAgent();
     // Handle action requests
     socket.on('input', async (userMessage: string) => {
       try {
         console.log('Coinbase Agent input:', userMessage);
-        const results = await coinbaseAgentService.getAgent().stream(
+        const results = await onchainAgent.stream(
           { messages: [new HumanMessage(userMessage)] },
-          coinbaseAgentService.getAgentConfig()
+          onchainTradeAgent.getAgentConfig()
         );
 
         for await (const chunk of results) {
-          if ("agent" in chunk) {
-            socket.emit('output', chunk.agent.messages[0].content);
-          } else if ("tools" in chunk) {
-            socket.emit('output', chunk.tools.messages[0].content);
+          const messageContent = chunk.agent?.messages[0]?.content || chunk.tools?.messages[0]?.content;
+          if (messageContent) {
+            socket.emit('output', messageContent);
           }
         }
 
       } catch (error) {
         console.error('Error executing action:', error);
-        socket.emit('error', {
-          message: error instanceof Error ? error.message : 'Failed to execute action',
-          timestamp: new Date().toISOString()
-        });
+        // socket.emit('error', {
+        //   message: error instanceof Error ? error.message : 'Failed to execute action',
+        //   timestamp: new Date().toISOString()
+        // });
       }
     });
 
     // Handle manual cleanup request
-    socket.on('cleanup', async () => {
+    socket.on('disconnect', async () => {
       try {
-        await coinbaseAgentService.cleanup();
-        socket.emit('status', 'Agent cleaned up successfully');
+        // socket.emit('status', 'Agent cleaned up successfully');
       } catch (error) {
         console.error('Error during cleanup:', error);
-        socket.emit('error', {
-          message: error instanceof Error ? error.message : 'Failed to cleanup',
-          timestamp: new Date().toISOString()
-        });
-      }
-    });
-
-    socket.on('disconnect', async () => {
-      console.log('Client disconnected from base actions');
-      try {
-        await coinbaseAgentService.cleanup();
-      } catch (error) {
-        console.error('Error during disconnect cleanup:', error);
+        // socket.emit('error', {
+        //   message: error instanceof Error ? error.message : 'Failed to cleanup',
+        //   timestamp: new Date().toISOString()
+        // });
       }
     });
 
   } catch (error) {
     console.error('Error initializing agent:', error);
-    socket.emit('error', {
-      message: 'Failed to initialize agent',
-      timestamp: new Date().toISOString()
-    });
+    // socket.emit('error', {
+    //   message: 'Failed to initialize agent',
+    //   timestamp: new Date().toISOString()
+    // });
   }
 });
 

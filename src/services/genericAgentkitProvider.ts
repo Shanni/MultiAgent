@@ -50,7 +50,7 @@ import {
       }
   }
   
-  export class CoinbaseTradeAgent {
+  export class OnchainTradeAgent {
       private agentKit: AgentKit | any;
       private walletProvider: ViemWalletProvider | undefined;
       private agent: any; // Type will be ReactAgent
@@ -91,7 +91,7 @@ import {
   
               const client = createWalletClient({
                 account,
-                chain: baseSepolia,
+                chain: baseSepolia, // TODO: Change to other chains
                 transport: http(),
               });
   
@@ -111,7 +111,7 @@ import {
               const tools = await getLangChainTools(this.agentKit);
   
               // Store buffered conversation history in memory
-              this.agentConfig = { configurable: { thread_id: "CDP AgentKit Chatbot Example!" } };
+              this.agentConfig = { configurable: { thread_id: "Highland Agent Cross Chain" } };
   
               // Create React Agent using the LLM and CDP AgentKit tools
               this.agent = createReactAgent({
