@@ -228,7 +228,7 @@ import {
       async initialize() {
           try {
               await this.initializeAgent();
-              console.log("Coinbase Agent initialized and connected to network");
+              console.log("Onchain Agent initialized and connected to network");
               return this;
           } catch (error) {
               console.error("Failed to initialize CoinbaseTradeAgent:", error);

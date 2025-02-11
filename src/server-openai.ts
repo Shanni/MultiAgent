@@ -287,13 +287,13 @@ baseActionNamespace.on('connection', async (socket) => {
   try {
     // Initialize the agent when a client connects
     await onchainTradeAgent.initialize();
-    socket.emit('status', 'Hey there! 😊 I\'m your friendly Coinbase Agent, all set and ready to help! 🚀💰 What can I do for you today?');
+    socket.emit('status', 'Hey there! 😊 I\'m your friendly Onchain Agent, all set and ready to help! 🚀💰 What can I do for you today?');
 
     const onchainAgent = onchainTradeAgent.getAgent();
     // Handle action requests
     socket.on('input', async (userMessage: string) => {
       try {
-        console.log('Coinbase Agent input:', userMessage);
+        console.log('Onchain Agent input:', userMessage);
         const results = await onchainAgent.stream(
           { messages: [new HumanMessage(userMessage)] },
           onchainTradeAgent.getAgentConfig()
